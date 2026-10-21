@@ -1,7 +1,8 @@
 # Changelog
 
-## 0.1.0 — unreleased
+## 0.1.0 — 2026-10-21
 
+- Published to npm as `dsh-web-ask-aside@0.1.0` and tagged `v0.1.0` on GitHub.
 - Initial project scaffold: Host bundle row, Client selection trigger, forked side
   session in the right sidebar, quoted composer draft, live tab title, en/zh copy.
 - Build: ESM Host entry plus a `window.__ModuleLoader__` browser factory.
