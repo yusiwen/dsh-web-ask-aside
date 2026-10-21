@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.0 — 2026-10-21
+
+- Fork titles now append a localized "ask aside" marker (`（侧问）` / ` (ask aside)`)
+  and pin it against automatic title regeneration.
+- Closing a side-ask tab archives its fork. A fork with running work goes through the
+  Host's stop-and-archive confirmation; archiving is reversible and never deletes the
+  Session.
+- Added the `uiWorkspace` Client service to the bundle injection and peer dependencies.
+- Added title/locale/apply unit coverage and browser e2e checks for the title and
+  archive-on-close behavior.
+
 ## 0.1.1 — 2026-10-21
 
 - First release published by the tag-triggered OIDC workflow; no runtime changes.

@@ -10,9 +10,15 @@ import type { ComponentType } from 'react'
 import type { Context } from '@deepseek-ai/cordis'
 import type { Translate } from './draft.ts'
 
+/** The session face operations the plugin needs on a retained generation. */
+export interface SessionFace {
+  rename(title: string): Promise<unknown>
+}
+
 /** One retained Session generation. */
 export interface SessionBinding {
   readonly sessionId: string
+  readonly session: SessionFace
 }
 
 /** One owned Session reference acquired through `sessions.retain`. */
@@ -41,10 +47,14 @@ export interface SessionsService {
   scope(sessionId: string): Context | undefined
 }
 
-/** The on-screen Session and resource-opening operation. */
+/** The on-screen Session, resource opening, and tab-close cleanup. */
 export interface SidebarRightService {
   readonly mounted: { getSnapshot(): string | undefined }
   openResource(address: string, options?: { readonly preferNewPane?: boolean }): void
+  registerCloseHandler(
+    kind: string,
+    handler: (sessionId: string, tab: { readonly contentId: string; readonly kind: string }) => void,
+  ): () => void
 }
 
 /** Static declaration of one right-sidebar tab type. */
@@ -123,6 +133,11 @@ export interface UiConversationService {
   }
 }
 
+/** Workspace navigation operations used for Session lifecycle cleanup. */
+export interface UiWorkspaceService {
+  archiveSession(sessionId: string, options?: { readonly stopActivity?: boolean }): Promise<void>
+}
+
 /** Locale service face. */
 export interface LocaleService {
   bind(namespace: string): Translate
@@ -141,6 +156,7 @@ export interface DshClientContext extends Context {
   readonly slots: SlotsService
   readonly conversation: ConversationService
   readonly uiConversation: UiConversationService
+  readonly uiWorkspace: UiWorkspaceService
   readonly locale: LocaleService
 }
 

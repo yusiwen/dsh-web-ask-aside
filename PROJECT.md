@@ -48,6 +48,7 @@ A slice is done when:
 | S3 | English and Chinese dictionaries plus inventory metadata | R6 | `pnpm vitest run tests/unit/locales.spec.ts` exits 0 | done |
 | S4 | Packable and installable artifact | R7 | `pnpm run check` exits 0 | done |
 | S5 | Browser end-to-end check against a fixture DSH home | R1, R3, R4 | `pnpm run test:e2e` exits 0 | done |
+| S6 | Fork title suffix and archive on tab close | R9, R10 | `pnpm run test:e2e` exits 0 | done |
 
 ## Verification log
 
@@ -65,6 +66,8 @@ A slice is done when:
 | 2026-10-21 | `npm view dsh-web-ask-aside@0.1.1 dist.attestations` | 0 | OIDC-published, SLSA v1 provenance, `latest` = 0.1.1 |
 | 2026-10-21 | release workflow `39557972722` (`v0.1.1`) | 0 | `Publish to npm` ran via OIDC, provenance signed, `annotations=0` |
 | 2026-10-21 | `E2E_PACKAGE=dsh-web-ask-aside@0.1.1 pnpm run test:e2e` | 0 | published 0.1.1 tarball, `E2E PASS` |
+| 2026-10-21 | `pnpm run check` | 0 | 21 unit tests; title helper, apply rename/close, publint |
+| 2026-10-21 | `pnpm run test:e2e` | 0 | fork title suffix and closing the side tab archives the fork |
 
 ## Decision log
 
@@ -76,6 +79,7 @@ A slice is done when:
 | [0004](docs/adr/0004-public-extension-surface.md) | Public Client extension points, isolated DOM adapter | accepted |
 | [0005](docs/adr/0005-npm-only-distribution.md) | npm-only distribution in 0.1.0 | accepted |
 | [0006](docs/adr/0006-dsh-compatibility-floor.md) | DSH 0.2.1-rc.2 compatibility floor | accepted |
+| [0007](docs/adr/0007-side-ask-title-and-archive.md) | Pin a localized fork title and archive on tab close | accepted |
 
 ## Environments
 
@@ -88,5 +92,5 @@ A slice is done when:
 
 1. `bash scripts/workflow-check.sh .` — read the failures first.
 2. `pnpm install && pnpm run check` — the current gate.
-3. Current focus: maintenance; `0.1.1` is the current OIDC release with provenance; optional follow-up is deprecating the `0.0.0-stage` placeholder.
+3. Current focus: release `0.2.0` (title suffix and archive-on-close); `0.1.1` was the last OIDC release with provenance.
 4. Known blockers: None.

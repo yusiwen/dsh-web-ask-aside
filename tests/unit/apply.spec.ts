@@ -31,6 +31,9 @@ describe('applyWebAskAside', () => {
   let released: number
   let forkError: 'unavailable' | undefined
   let mounted: string | undefined
+  let renameCalls: string[]
+  let archiveCalls: string[]
+  let closeHandler: ((sessionId: string, tab: { readonly contentId: string; readonly kind: string }) => void) | undefined
 
   const fake = () => ({
     effect: (callback: () => (() => void) | void) => {
@@ -38,8 +41,11 @@ describe('applyWebAskAside', () => {
       return typeof dispose === 'function' ? dispose : () => {}
     },
     locale: {
-      bind: () => (key: string, params?: Record<string, string>) =>
-        params === undefined ? key : `${key}:${JSON.stringify(params)}`,
+      bind: () => (key: string, params?: Record<string, string>) => {
+        if (key === 'forkTitleSuffix') return '（侧问）'
+        if (key === 'forkTitleFallback') return '侧问'
+        return params === undefined ? key : `${key}:${JSON.stringify(params)}`
+      },
       register: () => () => {},
     },
     resources: {
@@ -66,7 +72,8 @@ describe('applyWebAskAside', () => {
     },
     sessions: {
       list: { getSnapshot: () => ({ byId: { parent: { displayTitle: 'Parent session' } } }) },
-      binding: (id: string) => (id === 'parent' ? { sessionId: 'parent' } : undefined),
+      binding: (id: string) =>
+        id === 'parent' ? { sessionId: 'parent', session: { rename: async () => {} } } : undefined,
       fork: async (options: ForkOptions) => {
         if (forkError === 'unavailable') {
           throw Object.assign(new Error('unavailable'), {
@@ -79,7 +86,14 @@ describe('applyWebAskAside', () => {
       },
       retain: () => {
         const reference = {
-          ready: Promise.resolve({ sessionId: 'child' }),
+          ready: Promise.resolve({
+            sessionId: 'child',
+            session: {
+              rename: async (title: string) => {
+                renameCalls.push(title)
+              },
+            },
+          }),
           release: () => {
             released += 1
           },
@@ -92,6 +106,18 @@ describe('applyWebAskAside', () => {
       mounted: { getSnapshot: () => mounted },
       openResource: (address: string, options?: { readonly preferNewPane?: boolean }) => {
         opened = options === undefined ? { address } : { address, options }
+      },
+      registerCloseHandler: (
+        _kind: string,
+        handler: (sessionId: string, tab: { readonly contentId: string; readonly kind: string }) => void,
+      ) => {
+        closeHandler = handler
+        return () => {}
+      },
+    },
+    uiWorkspace: {
+      archiveSession: async (sessionId: string) => {
+        archiveCalls.push(sessionId)
       },
     },
     uiConversation: {
@@ -122,6 +148,9 @@ describe('applyWebAskAside', () => {
     released = 0
     forkError = undefined
     mounted = 'parent'
+    renameCalls = []
+    archiveCalls = []
+    closeHandler = undefined
     vi.useFakeTimers()
   })
 
@@ -145,7 +174,7 @@ describe('applyWebAskAside', () => {
     expect(ask).toBeTypeOf('function')
 
     await ask?.({ text: 'line one\nline two', turn: 3 })
-    expect(forkArgs).toEqual({ sessionId: 'parent', atSeq: 42, increaseTitle: true })
+    expect(forkArgs).toEqual({ sessionId: 'parent', atSeq: 42 })
     expect(opened?.address).toBe(addressFor('child', 'parent'))
     expect(opened?.options).toEqual({ preferNewPane: true })
 
@@ -160,11 +189,11 @@ describe('applyWebAskAside', () => {
     expect(first?.value?.ok).toBe(true)
     await Promise.resolve()
     await Promise.resolve()
-    expect(draftInit?.binding).toEqual({ sessionId: 'child' })
+    expect(draftInit?.binding).toMatchObject({ sessionId: 'child' })
     expect(draftInit?.options.prompt).toBe('draftAbout\n\n> line one\n> line two\n\n')
     controller.abort()
     await iterator?.next()
-    expect(released).toBe(1)
+    expect(released).toBe(2)
   })
 
   it('forks at the latest completed turn when no turn is known', async () => {
@@ -173,7 +202,7 @@ describe('applyWebAskAside', () => {
     const ask = overlayAsk()
 
     await ask?.({ text: 'plain' })
-    expect(forkArgs).toEqual({ sessionId: 'parent', increaseTitle: true })
+    expect(forkArgs).toEqual({ sessionId: 'parent' })
   })
 
   it('reports a missing on-screen session', async () => {
@@ -192,6 +221,21 @@ describe('applyWebAskAside', () => {
     forkError = 'unavailable'
 
     await expect(ask?.({ text: 'plain' })).rejects.toMatchObject({ code: 'forkUnavailable' })
+  })
+
+  it('titles the fork and archives it when the side tab closes', async () => {
+    const context = fake()
+    applyWebAskAside(context as unknown as Context)
+    const ask = overlayAsk()
+
+    await ask?.({ text: 'plain' })
+    await Promise.resolve()
+    await Promise.resolve()
+    expect(renameCalls).toEqual(['Parent session（侧问）'])
+    expect(closeHandler).toBeTypeOf('function')
+    closeHandler?.('parent', { contentId: addressFor('child', 'parent'), kind: 'askaside' })
+    await Promise.resolve()
+    expect(archiveCalls).toEqual(['child'])
   })
 
   it('registers the tab type and title with the parent title', () => {

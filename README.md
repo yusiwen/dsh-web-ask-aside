@@ -30,6 +30,12 @@ English | [中文](README.zh.md)
   ```
 
   The user types the actual question and sends it. Nothing is sent until they do.
+- The fork's durable title is `<parent title><localized side-ask marker>`; the rename
+  pins it against automatic title regeneration. An untitled parent uses the localized
+  marker alone.
+- Closing the side-ask tab archives the fork. If it still has running work, DSH raises
+  the stop-and-archive confirmation instead of stopping it silently. Archived Sessions
+  are hidden by the default filter and can be restored.
 - The tab title follows the forked Session's durable title once the Host projects one.
 
 ## Install
@@ -60,8 +66,8 @@ A side ask is a real fork, not a temporary overlay:
   session list.
 - It duplicates the inherited event prefix into its own session log and future
   requests.
-- Closing the tab does not delete or archive the Session. Archive it from the
-  session list when it is no longer useful.
+- Closing the side-ask tab archives the fork. Archiving is reversible and does not
+  delete the Session; restore it from the archived filter when needed.
 - The parent conversation is never modified: no branch, no hidden turn, no context
   entry.
 - The forked Session has the same tools and permissions as a normal Session. The
@@ -75,6 +81,10 @@ A side ask is a real fork, not a temporary overlay:
   the current one.
 - The selection trigger does not read Trajectory view selections; the fork then
   falls back to the latest completed turn.
+- The title marker is localized when the fork is created; changing the UI language
+  later does not rewrite existing titles.
+- If archiving on close fails, the tab still closes and the Session remains in the
+  list; archive it from the session list.
 - The tab's conversation uses the shared embedded Conversation Factory. It
   intentionally omits the main header and content-width controls.
 - The selection-to-turn mapping reads Chat DOM markers (`data-chat-turn`,
