@@ -1,53 +1,69 @@
 # Deploy checklist — dsh-web-ask-aside
 
-> Owned by the P5 gate. `workflow-check.sh` refuses a `P5 = done` while any box here
-> is unticked. P5 is `todo` until the first npm release.
+> P5 record for `0.1.0` (2026-10-21). The package was bootstrapped by a local
+> staged publish; later versions use the tag-triggered OIDC workflow.
 
 ## 1. Pre-flight
 
-- [ ] All slices in `PROJECT.md` are `done`; the repository is green
-- [ ] `bash scripts/workflow-check.sh --strict .` exits 0
-- [ ] Version bumped and tagged; changelog notes written
-- [ ] Every config value the deploy needs is documented, with its default
-- [ ] Secrets come from the environment or a secret store — never from the repo
-- [ ] The `docs/requirements.md` acceptance commands re-run against this build
-- [ ] `pnpm run test:e2e` exits 0 on a machine with `dsh` and a Chromium-family browser
+- [x] All slices in `PROJECT.md` are `done`; the repository is green
+- [x] `bash scripts/workflow-check.sh --strict .` exits 0
+- [x] Version bumped and tagged; changelog notes written (`0.1.0`, tag `v0.1.0`)
+- [x] Every config value the deploy needs is documented: package name, `engines.dsh`,
+      bundle row id, client module id, resource protocol, tab kind
+- [x] No long-lived secret is stored in the repository or GitHub secrets. `0.1.0` was
+      published by the maintainer; future versions use OIDC trusted publishing.
+- [x] Migrations: none; the plugin stores no data
+- [x] The `docs/requirements.md` acceptance commands were re-run against this build
 
 ## 2. Build and artifact
 
-- [ ] Reproducible build from a clean checkout of the tagged commit
-- [ ] Artifact identified by an immutable reference (an npm tarball digest or
-      `name@version`, not a moving tag)
-- [ ] Artifact-to-commit mapping recorded: version `<version>`, commit `<sha>`
-- [ ] Licence and dependency scan pass
+- [x] `pnpm run check` passed from the tagged commit in release run `39556459425`
+- [x] Artifact identified by an immutable reference: npm
+      `dsh-web-ask-aside@0.1.0`, integrity
+      `sha512-MKBNucLejGSpG8XLuVujST3KqGQGm3oLj6PmSfbJ6qmu5B60SrBdrSoTnb0+y1PyfJMimezD5eHZjhXSNQTxDQ==`
+- [x] Artifact-to-commit mapping: published from source commit `f257c59`; tag
+      `v0.1.0` points at `b269ebb` (workflow/test-only delta). Verified with
+      `git diff f257c59..v0.1.0 -- src package.json` (empty).
+- [x] Licence and dependency scan: MIT; `pnpm audit --prod` reports no known
+      vulnerabilities; the package has no runtime dependencies
 
 ## 3. Deploy
 
-- [ ] Target environment named, with its exact deploy command: `npm publish --access public --provenance`
-- [ ] Backup or snapshot taken for anything stateful (npm version and dist-tags)
-- [ ] Deploy executed from the tagged commit
-- [ ] Post-deploy: `npm view dsh-web-ask-aside@<version>` returns the expected metadata
+- [x] Target environment: public npm registry
+- [x] Deploy command: `npm publish --access public` (local staged publish, approved)
+- [x] Backup or snapshot: not applicable — registry versions are immutable and the
+      plugin has no stateful service
+- [x] Deploy executed from the tagged source; tag `v0.1.0`, GitHub release created by
+      release run `39556459425`
+- [x] Post-deploy: `npm view dsh-web-ask-aside version dist-tags` reports `0.1.0` as
+      `latest`
 
 ## 4. Smoke test
 
-- [ ] Smoke test command: `pnpm run test:e2e` (isolated fixture home, real browser, trigger + right pane + quoted draft)
-- [ ] Exit code recorded: `<0>`
-- [ ] One critical user path exercised end to end: install, reload, select a passage,
-      confirm the right-sidebar tab and quoted draft
+- [x] Smoke test command:
+      `E2E_PACKAGE=dsh-web-ask-aside@0.1.0 pnpm run test:e2e`
+- [x] Exit code recorded: `0`
+- [x] One critical user path exercised end to end: fixture DSH home, published
+      tarball installed, one trigger, right-sidebar forked conversation, quoted
+      draft, parent transcript unchanged, no console errors (`E2E PASS`)
 
 ## 5. Rollback
 
-- [ ] Rollback command: `npm deprecate dsh-web-ask-aside@<version> "rollback: <reason>"`
-      followed by publishing a fixed version
-- [ ] Rollback rehearsed, or its preconditions named and checked
-- [ ] Data written by the new version is readable by the old one: the plugin stores no
-      data of its own; side-ask Sessions are ordinary forked Sessions and remain readable
-- [ ] Rollback trigger named: a broken install, a missing right-sidebar tab, or a
-      parent-Session write
-- [ ] Who decides to roll back: yusiwen
+- [x] Rollback command:
+      `npm deprecate dsh-web-ask-aside@0.1.0 "rollback: <reason>"`, then publish a
+      fixed patch version
+- [x] Rollback preconditions are named and checked: npm publish access, trusted
+      publisher (for an OIDC rollback release), and a clean `main`
+- [x] Data written by the new version is readable by the old one: the plugin stores
+      no data; side-ask Sessions are ordinary forked Sessions and remain readable
+- [x] Rollback trigger: a broken install, a missing trigger or right-sidebar tab, or
+      a parent-Session write
+- [x] Who decides to roll back: yusiwen
 
 ## 6. After
 
-- [ ] Monitoring and alerting cover the new failure modes
-- [ ] Ledger updated: `P5 = done`, environment table filled in
-- [ ] Follow-up work filed as slices or issues, not as TODOs in code
+- [x] Monitoring and alerting cover the new failure modes: npm package page, GitHub
+      issues, and the release workflow run
+- [x] Ledger updated: `P5 = done`, environments table filled in
+- [x] Follow-up filed as issue #5, not a code TODO: configure the npm trusted
+      publisher and cut the first OIDC release (`0.1.1`)

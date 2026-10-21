@@ -25,7 +25,7 @@ the current conversation.
 | P2 | Work sliced into verifiable increments | PROJECT.md | self | done |
 | P3 | Every slice implemented | src/index.ts | self | done |
 | P4 | Tests pass, Definition of Done met | tests/e2e/ask-aside.e2e.mjs | self | done |
-| P5 | Deployed, smoke-tested, rollback ready | docs/deploy.md | human | todo |
+| P5 | Deployed, smoke-tested, rollback ready | docs/deploy.md | human (2026-10-21) | done |
 
 ## Definition of Done
 
@@ -58,6 +58,10 @@ A slice is done when:
 | 2026-10-21 | `bash scripts/workflow-check.sh .` | 0 | 18 passed, 0 failed |
 | 2026-10-21 | `pnpm run test:e2e` | 0 | fixture home, headless Edge, trigger + right pane + quoted draft + parent unchanged |
 | 2026-10-21 | main-profile boot + headless trigger check | 0 | old client 0, new client 1, one `dwa-trigger`, no console errors |
+| 2026-10-21 | local staged `npm publish` / `npm view` | 0 | `dsh-web-ask-aside@0.1.0`, `latest` = 0.1.0, 12 files, integrity `sha512-MKBN...` |
+| 2026-10-21 | `E2E_PACKAGE=dsh-web-ask-aside@0.1.0 pnpm run test:e2e` | 0 | published tarball, `E2E PASS` |
+| 2026-10-21 | release workflow `39556459425` (`v0.1.0`) | 0 | publish skipped (version exists), GitHub release created, `annotations=0` |
+| 2026-10-21 | `pnpm audit --prod` | 0 | no known vulnerabilities; no runtime dependencies |
 
 ## Decision log
 
@@ -75,11 +79,11 @@ A slice is done when:
 | Environment | URL / target | Deploy command | Notes |
 | :--- | :--- | :--- | :--- |
 | local | this checkout | `pnpm run build && dsh plugin --profile web add link:"$PWD"` | development profile only |
-| prod | npm registry | `npm publish --access public --provenance` | rollback: see `docs/deploy.md` |
+| prod | npm `dsh-web-ask-aside@0.1.0` + GitHub release `v0.1.0` | local staged publish for 0.1.0; future versions: tag `v*` → release workflow OIDC | rollback: see `docs/deploy.md`; follow-up: issue #5 (trusted publisher / first OIDC release) |
 
 ## Resume
 
 1. `bash scripts/workflow-check.sh .` — read the failures first.
 2. `pnpm install && pnpm run check` — the current gate.
-3. Current focus: P5 npm release; the main profile is switched and the restarted server is verified.
+3. Current focus: no open phase; follow-up issue #5 configures the trusted publisher and cuts the first OIDC release (`0.1.1`).
 4. Known blockers: None.
