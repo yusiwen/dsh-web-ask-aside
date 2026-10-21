@@ -267,7 +267,9 @@ async function main() {
   try {
     console.log(`e2e home: ${home}`)
     console.log(`browser: ${browser}`)
-    await run(['dsh', 'plugin', '--profile', 'web', 'add', `link:${REPO}`], { ...process.env, DSH_HOME: home })
+    const installTarget = process.env.E2E_PACKAGE ?? `link:${REPO}`
+    console.log(`install target: ${installTarget}`)
+    await run(['dsh', 'plugin', '--profile', 'web', 'add', installTarget], { ...process.env, DSH_HOME: home })
     writeFixtureSession(home)
     server = await startServer(home)
     console.log(`server: ${server.url}`)
