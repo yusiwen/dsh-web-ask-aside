@@ -68,6 +68,9 @@ A slice is done when:
 | 2026-10-21 | `E2E_PACKAGE=dsh-web-ask-aside@0.1.1 pnpm run test:e2e` | 0 | published 0.1.1 tarball, `E2E PASS` |
 | 2026-10-21 | `pnpm run check` | 0 | 21 unit tests; title helper, apply rename/close, publint |
 | 2026-10-21 | `pnpm run test:e2e` | 0 | fork title suffix and closing the side tab archives the fork |
+| 2026-10-21 | `npm view dsh-web-ask-aside@0.2.0 dist.attestations` | 0 | OIDC-published, SLSA v1 provenance, `latest` = 0.2.0 |
+| 2026-10-21 | release workflow `39566362610` (`v0.2.0`) | 0 | `Publish to npm` ran via OIDC, provenance signed, `annotations=0` |
+| 2026-10-21 | `E2E_PACKAGE=dsh-web-ask-aside@0.2.0 pnpm run test:e2e` | 0 | published 0.2.0 tarball, `E2E PASS` (title suffix + archive on close) |
 
 ## Decision log
 
@@ -86,11 +89,11 @@ A slice is done when:
 | Environment | URL / target | Deploy command | Notes |
 | :--- | :--- | :--- | :--- |
 | local | this checkout | `pnpm run build && dsh plugin --profile web add link:"$PWD"` | development profile only |
-| prod | npm `dsh-web-ask-aside@0.1.1` + GitHub release `v0.1.1` | tag `v*` → release workflow OIDC; 0.1.0 was the staged-publish bootstrap | rollback: see `docs/deploy.md`; provenance verified for 0.1.1 |
+| prod | npm `dsh-web-ask-aside@0.2.0` + GitHub release `v0.2.0` | tag `v*` → release workflow OIDC; 0.1.0 was the staged-publish bootstrap | rollback: see `docs/deploy.md`; provenance verified for 0.1.1 and 0.2.0 |
 
 ## Resume
 
 1. `bash scripts/workflow-check.sh .` — read the failures first.
 2. `pnpm install && pnpm run check` — the current gate.
-3. Current focus: release `0.2.0` (title suffix and archive-on-close); `0.1.1` was the last OIDC release with provenance.
+3. Current focus: maintenance; `0.2.0` is the current OIDC release with provenance. Optional follow-up is deprecating the `0.0.0-stage` placeholder.
 4. Known blockers: None.
