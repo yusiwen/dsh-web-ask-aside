@@ -79,3 +79,14 @@
   provenance object; `latest` is `0.1.1`.
 - `E2E_PACKAGE=dsh-web-ask-aside@0.1.1 pnpm run test:e2e` exits 0 with `E2E PASS`.
 - No runtime changes; the `0.1.0` checklist above remains the P5 baseline.
+
+## 0.2.0 — title and archive follow-up (2026-10-21)
+
+- Tag `v0.2.0` → release run `39566362610`: the `Publish to npm` step ran via OIDC,
+  signed provenance, and published `dsh-web-ask-aside@0.2.0`.
+- `npm view dsh-web-ask-aside@0.2.0 dist.attestations` returns a SLSA v1 provenance
+  object; `latest` is `0.2.0`.
+- `E2E_PACKAGE=dsh-web-ask-aside@0.2.0 pnpm run test:e2e` exits 0 with `E2E PASS`;
+  the fork title carries the localized marker and closing the side tab archives it.
+- The `0.1.0` checklist above remains the P5 baseline; the `0.2.0` change has no data
+  migration and archiving stays reversible.
