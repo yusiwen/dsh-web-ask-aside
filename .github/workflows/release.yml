@@ -4,7 +4,6 @@ on:
   push:
     tags:
       - 'v*'
-  workflow_dispatch:
 
 permissions:
   contents: write
@@ -30,10 +29,28 @@ jobs:
 
       - run: pnpm run check
 
-      - run: npm publish --access public --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Read the package version
+        id: package
+        run: echo "version=$(node -p 'require("./package.json").version')" >> "$GITHUB_OUTPUT"
 
-      - run: gh release create "$GITHUB_REF_NAME" --generate-notes
+      - name: Verify the tag matches the package version
+        run: test "v${{ steps.package.outputs.version }}" = "$GITHUB_REF_NAME"
+
+      - name: Check whether this version is already published
+        id: published
+        run: |
+          if npm view "dsh-web-ask-aside@${{ steps.package.outputs.version }}" version >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish to npm
+        if: steps.published.outputs.exists != 'true'
+        run: npm publish --access public --provenance
+
+      - name: Create the GitHub release
+        run: |
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || gh release create "$GITHUB_REF_NAME" --generate-notes
         env:
           GH_TOKEN: ${{ github.token }}
