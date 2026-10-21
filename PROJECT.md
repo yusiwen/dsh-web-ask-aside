@@ -62,6 +62,9 @@ A slice is done when:
 | 2026-10-21 | `E2E_PACKAGE=dsh-web-ask-aside@0.1.0 pnpm run test:e2e` | 0 | published tarball, `E2E PASS` |
 | 2026-10-21 | release workflow `39556459425` (`v0.1.0`) | 0 | publish skipped (version exists), GitHub release created, `annotations=0` |
 | 2026-10-21 | `pnpm audit --prod` | 0 | no known vulnerabilities; no runtime dependencies |
+| 2026-10-21 | `npm view dsh-web-ask-aside@0.1.1 dist.attestations` | 0 | OIDC-published, SLSA v1 provenance, `latest` = 0.1.1 |
+| 2026-10-21 | release workflow `39557972722` (`v0.1.1`) | 0 | `Publish to npm` ran via OIDC, provenance signed, `annotations=0` |
+| 2026-10-21 | `E2E_PACKAGE=dsh-web-ask-aside@0.1.1 pnpm run test:e2e` | 0 | published 0.1.1 tarball, `E2E PASS` |
 
 ## Decision log
 
@@ -79,11 +82,11 @@ A slice is done when:
 | Environment | URL / target | Deploy command | Notes |
 | :--- | :--- | :--- | :--- |
 | local | this checkout | `pnpm run build && dsh plugin --profile web add link:"$PWD"` | development profile only |
-| prod | npm `dsh-web-ask-aside@0.1.0` + GitHub release `v0.1.0` | local staged publish for 0.1.0; future versions: tag `v*` → release workflow OIDC | rollback: see `docs/deploy.md`; follow-up: issue #5 (trusted publisher / first OIDC release) |
+| prod | npm `dsh-web-ask-aside@0.1.1` + GitHub release `v0.1.1` | tag `v*` → release workflow OIDC; 0.1.0 was the staged-publish bootstrap | rollback: see `docs/deploy.md`; provenance verified for 0.1.1 |
 
 ## Resume
 
 1. `bash scripts/workflow-check.sh .` — read the failures first.
 2. `pnpm install && pnpm run check` — the current gate.
-3. Current focus: no open phase; follow-up issue #5 configures the trusted publisher and cuts the first OIDC release (`0.1.1`).
+3. Current focus: maintenance; `0.1.1` is the current OIDC release with provenance; optional follow-up is deprecating the `0.0.0-stage` placeholder.
 4. Known blockers: None.

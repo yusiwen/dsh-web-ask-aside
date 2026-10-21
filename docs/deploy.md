@@ -67,3 +67,15 @@
 - [x] Ledger updated: `P5 = done`, environments table filled in
 - [x] Follow-up filed as issue #5, not a code TODO: configure the npm trusted
       publisher and cut the first OIDC release (`0.1.1`)
+
+## 0.1.1 — OIDC follow-up (2026-10-21)
+
+- Trusted publisher configured on npm for `yusiwen/dsh-web-ask-aside`, workflow
+  `release.yml`, permissions `publish` and `stage publish`.
+- Tag `v0.1.1` → release run `39557972722`: the `Publish to npm` step ran (not
+  skipped), used OIDC with no `NPM_TOKEN`, signed a provenance statement, and
+  published `dsh-web-ask-aside@0.1.1`.
+- `npm view dsh-web-ask-aside@0.1.1 dist.attestations` returns a SLSA v1
+  provenance object; `latest` is `0.1.1`.
+- `E2E_PACKAGE=dsh-web-ask-aside@0.1.1 pnpm run test:e2e` exits 0 with `E2E PASS`.
+- No runtime changes; the `0.1.0` checklist above remains the P5 baseline.
