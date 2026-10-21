@@ -1,6 +1,6 @@
 {
   "name": "dsh-web-ask-aside",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Ask about selected conversation text in a forked side session shown in the DSH Web right sidebar",
   "type": "module",
   "main": "./lib/index.js",
