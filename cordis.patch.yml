@@ -1,0 +1,5 @@
+# Host half is a no-op row: the plugin lives entirely in the browser bundle.
+# The Client module is declared by package.json `dsh.client`.
+- insert:
+    - id: web-ask-aside
+      name: dsh-web-ask-aside
