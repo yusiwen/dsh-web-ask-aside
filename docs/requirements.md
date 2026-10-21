@@ -101,6 +101,27 @@ being read.
   error codes.
 - **Priority:** should
 
+### R9 — Fork title suffix
+
+- **Statement:** A newly created side-ask fork carries
+  `<parent title><localized side-ask marker>` as its durable Session title. The title
+  is pinned against automatic regeneration; an untitled parent uses the localized
+  marker alone, and the marker is never appended twice.
+- **Acceptance:** `pnpm vitest run tests/unit/title.spec.ts tests/unit/apply.spec.ts`
+  exits 0; the browser e2e asserts a session-list row with the marker.
+- **Priority:** should
+
+### R10 — Archive on tab close
+
+- **Statement:** Closing a side-ask tab archives its fork instead of leaving it in the
+  flat session list. Closing never deletes the Session, and a fork with running work
+  goes through the Host's stop-and-archive confirmation rather than being stopped
+  silently.
+- **Acceptance:** `pnpm vitest run tests/unit/apply.spec.ts` exits 0, asserting the
+  close handler archives the parsed child; `pnpm run test:e2e` closes the tab and
+  asserts the marked row is gone.
+- **Priority:** should
+
 ## Constraints
 
 - DSH `>=0.2.1-rc.2 <0.3.0-0`; the client APIs are pre-1.0 and may change between

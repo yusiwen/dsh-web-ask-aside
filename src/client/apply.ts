@@ -9,6 +9,7 @@ import { SideAskTab } from './tab.tsx'
 import { SideAskTitle } from './title.tsx'
 import { SideAskTrigger, type SideAskRequest } from './trigger.tsx'
 import { CSS } from './styles.ts'
+import { sideAskTitle } from './title.ts'
 
 /** Tooltip/error code carried by a typed rejection. */
 interface CodedError extends Error {
@@ -37,6 +38,8 @@ export function applyWebAskAside(ctx: Context): void {
   const t: Translate = client.locale.bind(LOCALE_NS)
   /** Draft text waiting for the tab's resource stream to retain the child. */
   const pendingPrompts = new Map<string, string>()
+  /** Child sessions whose tab close already started an archive. */
+  const archiving = new Set<string>()
 
   /**
    * Seed the forked Session's composer once its binding is ready.
@@ -53,6 +56,28 @@ export function applyWebAskAside(ctx: Context): void {
     } catch (failure) {
       console.warn('[web-ask-aside] could not seed the side-session draft', failure)
     }
+  }
+
+  /**
+   * Pin a localized title on the fork. `SessionFace.rename` marks the title as
+   * explicit, so DSH never replaces it with an automatically generated one.
+   * @param childId - forked Session identity.
+   * @param parentId - source Session identity.
+   */
+  function renameFork(childId: string, parentId: string): void {
+    const parentTitle = client.sessions.list.getSnapshot().byId[parentId]?.displayTitle
+    const title = sideAskTitle(parentTitle, t('forkTitleSuffix'), t('forkTitleFallback'))
+    const reference = client.sessions.retain(childId, { source: SOURCE })
+    void (async () => {
+      try {
+        const binding = await reference.ready
+        await binding.session.rename(title)
+      } catch (failure) {
+        console.warn('[web-ask-aside] could not title the side Session', failure)
+      } finally {
+        reference.release()
+      }
+    })()
   }
 
   /**
@@ -109,7 +134,6 @@ export function applyWebAskAside(ctx: Context): void {
       childId = await client.sessions.fork({
         sessionId,
         ...(atSeq === undefined ? {} : { atSeq }),
-        increaseTitle: true,
       })
     } catch (failure) {
       const rpcError = (failure as { readonly rpcError?: { readonly code?: unknown } }).rpcError
@@ -121,6 +145,7 @@ export function applyWebAskAside(ctx: Context): void {
       throw failure
     }
     pendingPrompts.set(childId, quotePrompt(t, text))
+    renameFork(childId, sessionId)
     try {
       client.sidebarRight.openResource(addressFor(childId, sessionId), { preferNewPane: true })
     } catch (failure) {
@@ -162,6 +187,27 @@ export function applyWebAskAside(ctx: Context): void {
         },
       }),
     'web-ask-aside: resource provider',
+  )
+
+  ctx.effect(
+    () =>
+      client.sidebarRight.registerCloseHandler(TAB_KIND, (_parentSessionId, tab) => {
+        const parsed = parseAddress(tab.contentId)
+        if (parsed === undefined || archiving.has(parsed.childId)) return
+        archiving.add(parsed.childId)
+        try {
+          void client.uiWorkspace
+            .archiveSession(parsed.childId)
+            .catch((failure) => {
+              console.warn('[web-ask-aside] could not archive the closed side Session', failure)
+            })
+            .finally(() => archiving.delete(parsed.childId))
+        } catch (failure) {
+          archiving.delete(parsed.childId)
+          console.warn('[web-ask-aside] could not archive the closed side Session', failure)
+        }
+      }),
+    'web-ask-aside: archive closed side Session',
   )
 
   ctx.effect(

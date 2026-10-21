@@ -13,6 +13,7 @@ export const inject = [
   'resources',
   'conversation',
   'uiConversation',
+  'uiWorkspace',
   'locale',
 ]
 

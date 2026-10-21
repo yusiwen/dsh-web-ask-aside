@@ -324,6 +324,25 @@ async function main() {
     assert(result.editor.includes('fixture 回答'), `composer does not contain the quoted passage: ${JSON.stringify(result.editor)}`)
     assert(result.mainTurns === mainTurns, `parent transcript changed: ${mainTurns} -> ${result.mainTurns}`)
     console.log('PASS right-sidebar conversation and quoted draft')
+    const sessionTitles = () => ui.evaluate(`JSON.stringify([...document.querySelectorAll('[data-row-key^="session:"]')].map((row) => row.innerText.replace(/\\s+/g, ' ')))`)
+    const titles = JSON.parse(await sessionTitles())
+    assert(titles.some((title) => /（侧问）|\(ask aside\)/.test(title)), `fork title is missing the side-ask suffix: ${JSON.stringify(titles)}`)
+    console.log('PASS fork title carries the side-ask suffix')
+    const close = JSON.parse(await ui.evaluate(`(function(){
+      var target=[...document.querySelectorAll('[data-rightbar-col] button')].find(function(button){
+        var label=(button.getAttribute('aria-label')||button.title||'').toLowerCase();
+        return (label.includes('close')||label.includes('关闭'))&&String(button.className).includes('tabClose');
+      });
+      if(target===undefined)return JSON.stringify({found:false});
+      var rect=target.getBoundingClientRect();
+      return JSON.stringify({found:true,x:rect.left+rect.width/2,y:rect.top+rect.height/2,visible:rect.width>0&&rect.height>0});
+    })()`))
+    assert(close.found && close.visible, `right-sidebar tab close button not found: ${JSON.stringify(close)}`)
+    await ui.clickAt(close.x, close.y)
+    await sleep(4000)
+    const after = JSON.parse(await sessionTitles())
+    assert(!after.some((title) => /（侧问）|\(ask aside\)/.test(title)), `closing the side tab did not archive the fork: ${JSON.stringify(after)}`)
+    console.log('PASS closing the side tab archives the fork')
     console.log('PASS parent transcript unchanged')
     assert(ui.errors.length === 0, `console errors:\n${ui.errors.join('\n')}`)
     console.log('PASS no console errors')
